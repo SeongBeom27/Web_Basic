@@ -1,0 +1,41 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Test_grid</title>
+    <style>
+        #grid {
+            border: 5px solid pink;
+            display: grid;
+            grid-template-columns: 1fr 2fr;
+        }
+        
+        #gridstatic {
+            border: 5px solid pink;
+            display: grid;
+            grid-template-columns: 150px 2fr;
+        }
+        
+        div {
+            border: 5px solid gray;
+        }
+    </style>
+</head>
+
+<body>
+    <!--block level element : div-->
+    <!--inline level element : span-->
+    <div id="grid">
+        <div>Navigation</div>
+        <div>Lorem ipsum dolor sit amet consectetur adipisicing elit. Animi necessitatibus repellendus fugiat placeat, odit eaque, nostrum magni earum veniam aliquid quidem. Ipsa quaerat molestiae tempora commodi atque iure recusandae illo.</div>
+    </div>
+
+    <div id="gridstatic">
+        <div>Navigation</div>
+        <div>Lorem ipsum dolor sit amet consectetur adipisicing elit. Animi necessitatibus repellendus fugiat placeat, odit eaque, nostrum magni earum veniam aliquid quidem. Ipsa quaerat molestiae tempora commodi atque iure recusandae illo.</div>
+    </div>
+</body>
+
+</html>
