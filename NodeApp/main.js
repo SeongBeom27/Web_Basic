@@ -8,8 +8,13 @@ var app = http.createServer(function(request, response) {
     var pathname = url.parse(_url, true).pathname;
     var title = queryData.id
 
+    // pathname으로는 home과 다른 페이지를 구별할 수 없다.
     if (pathname == '/') {
         fs.readFile(`data/${queryData.id}`, 'utf8', function(err, description) {
+            if (queryData.id == undefined) {
+                title = 'Welcome';
+                description = 'Hello, Node.js';
+            }
             var template = `
             <!doctype html>
             <html>
