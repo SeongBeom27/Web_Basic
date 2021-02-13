@@ -1,6 +1,8 @@
 var http = require('http');
 var fs = require('fs');
 var url = require('url');
+var qs = require('querystring');
+
 const { Http2ServerRequest } = require('http2');
 
 function templateHTML(title, list, body) {
@@ -31,6 +33,12 @@ function templateList(filelist) {
     list = list + '</ol>';
     return list;
 }
+/* 
+    createServer 콜백 함수를 웹페이지에 들어올 때마다 nodejs가 호출하는 함수이다.
+    
+    request : 요청할 때 웹브라우저가 보내준 정보들
+    response : 우리가 웹브라우저에 전송할 정보들
+*/
 var app = http.createServer(function(request, response) {
     var _url = request.url;
     var queryData = url.parse(_url, true).query;
@@ -59,24 +67,45 @@ var app = http.createServer(function(request, response) {
                 var title = 'WEB - create';
                 var list = templateList(filelist);
                 var template = templateHTML(title, list, `
-                <form action="http://localhost:3000/process_create" method="post">
-                    <!--   form 태그 내부에 있는 값들을 위 주소로 전송한다 -->
-                    <p><input type="text" name="title" placeholder="title"></p>
-                    <p>
-                        <textarea name="description" placeholder="description"></textarea>
-                    </p>
 
-                    <!--    description 값을 query string으로 전송하게 된다. -->
-                    <p>
-                        <input type="submit">
-                    </p>
-                </form>
+                    <form action="http://localhost:3000/create_process" method="post">
+                        <!--   form 태그 내부에 있는 값들을 위 주소로 전송한다 -->
+                        <p><input type="text" name="title" placeholder="title"></p>
+                        <p>
+                            <textarea name="description" placeholder="description"></textarea>
+                        </p>
+                        <!--    description 값을 query string으로 전송하게 된다. -->
+                        <p>
+                            <input type="submit">
+                        </p>
+                    </form>
+                     
                 `);
                 response.writeHead(200);
                 // 사람들이 실제로 받게되는 화면 data를 reponse.end(data)로 넘겨준다.
                 response.end(template);
             });
         });
+    } else if (pathname == '/create_process') {
+        var body = '';
+        // data 부분은 조각 조각의 양들을 서버쪽에서 수신할 때마다 아래 콜백 함수를 호출하게 되어있다.
+        request.on('data', function(data) {
+            body += data;
+
+            // 너무 많은 데이터가 들어오면 연결을 끊는 코드 
+            if (body.length > 1e6) {
+                request.connection.destroy();
+            }
+        });
+
+        request.on('end', function(data) {
+            var post = qs.parse(body);
+            var title = post.title;
+            var description = post.description;
+        });
+
+        response.writeHead(200);
+        response.end('success');
     } else {
         response.writeHead(404);
         response.end('not found');
