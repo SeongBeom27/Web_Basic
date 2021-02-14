@@ -146,6 +146,36 @@ var app = http.createServer(function(request, response) {
                 response.end(template);
             });
         });
+    } else if (pathname === "/update_process") {
+        var body = '';
+        // data 부분은 조각 조각의 양들을 서버쪽에서 수신할 때마다 아래 콜백 함수를 호출하게 되어있다.
+        request.on('data', function(data) {
+            body += data;
+
+            // 너무 많은 데이터가 들어오면 연결을 끊는 코드 
+            if (body.length > 1e6) {
+                request.connection.destroy();
+            }
+        });
+
+        request.on('end', function(data) {
+            var post = qs.parse(body);
+            var id = post.id;
+            var title = post.title;
+            var description = post.description;
+
+            // error 처리를 매우 잘해줘야함.
+            fs.rename(`data/${id}`, `data/${title}`, function(error) {
+                fs.writeFile(`data/${title}`, description, 'utf8', function(err) {
+                    // 파일 저장이 성공적을 됐을 경우 실행
+
+
+                    // writeHead ( 302 는 리다이렉트 하라는 의미)
+                    response.writeHead(302, { Location: `/?id=${title}` });
+                    response.end('success');
+                });
+            });
+        });
     } else {
         response.writeHead(404);
         response.end('not found');
