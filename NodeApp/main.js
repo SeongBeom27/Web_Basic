@@ -102,10 +102,14 @@ var app = http.createServer(function(request, response) {
             var post = qs.parse(body);
             var title = post.title;
             var description = post.description;
-        });
+            fs.writeFile(`data/${title}`, description, 'utf8', function(err) {
+                // 파일 저장이 성공적을 됐을 경우 실행
 
-        response.writeHead(200);
-        response.end('success');
+                // writeHead ( 302 는 리다이렉트 하라는 의미)
+                response.writeHead(302, { Location: `/?id=${title}` });
+                response.end('success');
+            });
+        });
     } else {
         response.writeHead(404);
         response.end('not found');
