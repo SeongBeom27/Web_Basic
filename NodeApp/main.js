@@ -52,7 +52,13 @@ var app = http.createServer(function(request, response) {
                 var title = queryData.id;
                 var template = templateHTML(title, list,
                     `<h2>${title}</h2>${description}`,
-                    `<a href="/create">create</a> <a href="/update?id=${title}">update</a>`);
+                    `<a href="/create">create</a> 
+                     <a href="/update?id=${title}">update</a>
+                     <form action="delete_process" method="post">
+                        <input type="hidden" name="id" value="${title}">
+                        <input type="submit" value="delete">
+                     </form>
+                     `);
                 // homepage의 경우
                 if (queryData.id == undefined) {
                     title = 'Welcome';
@@ -174,6 +180,29 @@ var app = http.createServer(function(request, response) {
                     response.writeHead(302, { Location: `/?id=${title}` });
                     response.end('success');
                 });
+            });
+        });
+    } else if (pathname === "/delete_process") {
+        var body = '';
+        // data 부분은 조각 조각의 양들을 서버쪽에서 수신할 때마다 아래 콜백 함수를 호출하게 되어있다.
+        request.on('data', function(data) {
+            body += data;
+
+            // 너무 많은 데이터가 들어오면 연결을 끊는 코드 
+            if (body.length > 1e6) {
+                request.connection.destroy();
+            }
+        });
+
+        request.on('end', function(data) {
+            var post = qs.parse(body);
+            var id = post.id;
+
+            fs.unlink(`data/${id}`, function(err) {
+                // writeHead ( 302 는 리다이렉트 하라는 의미)
+                // 삭제가 끝나면 홈으로 보낸다
+                response.writeHead(302, { Location: `/` });
+                response.end();
             });
         });
     } else {
