@@ -5,7 +5,7 @@ var qs = require('querystring');
 
 const { Http2ServerRequest } = require('http2');
 
-function templateHTML(title, list, body) {
+function templateHTML(title, list, body, control) {
     return `
     <!doctype html>
     <html>
@@ -16,7 +16,7 @@ function templateHTML(title, list, body) {
     <body>
     <h1><a href="/">WEB2</a></h1>
     ${list}
-    <a href="/create">create</a>
+    ${control}
     ${body}
     </body>
     </html>
@@ -50,13 +50,17 @@ var app = http.createServer(function(request, response) {
             fs.readFile(`data/${queryData.id}`, 'utf8', function(err, description) {
                 var list = templateList(filelist);
                 var title = queryData.id;
+                var template = templateHTML(title, list,
+                    `<h2>${title}</h2>${description}`,
+                    `<a href="/create">create</a> <a href="/update?id=${title}">update</a>`);
                 // homepage의 경우
                 if (queryData.id == undefined) {
                     title = 'Welcome';
                     description = 'Hello, Node.js';
+                    template = templateHTML(title, list,
+                        `<h2>${title}</h2>${description}`,
+                        `<a href="/create">create</a>`);
                 }
-                var template = templateHTML(title, list, `<h2>${title}</h2>${description}`);
-                response.writeHead(200);
                 // 사람들이 실제로 받게되는 화면 data를 reponse.end(data)로 넘겨준다.
                 response.end(template);
             });
@@ -68,7 +72,7 @@ var app = http.createServer(function(request, response) {
                 var list = templateList(filelist);
                 var template = templateHTML(title, list, `
 
-                    <form action="http://localhost:3000/create_process" method="post">
+                    <form action="/create_process" method="post">
                         <!--   form 태그 내부에 있는 값들을 위 주소로 전송한다 -->
                         <p><input type="text" name="title" placeholder="title"></p>
                         <p>
@@ -80,7 +84,7 @@ var app = http.createServer(function(request, response) {
                         </p>
                     </form>
                      
-                `);
+                `, ``);
                 response.writeHead(200);
                 // 사람들이 실제로 받게되는 화면 data를 reponse.end(data)로 넘겨준다.
                 response.end(template);
@@ -109,6 +113,37 @@ var app = http.createServer(function(request, response) {
                 // writeHead ( 302 는 리다이렉트 하라는 의미)
                 response.writeHead(302, { Location: `/?id=${title}` });
                 response.end('success');
+            });
+        });
+    } else if (pathname === '/update') {
+        fs.readdir('./data', function(err, filelist) {
+            fs.readFile(`data/${queryData.id}`, 'utf8', function(err, description) {
+                var list = templateList(filelist);
+                var title = queryData.id;
+                var template = templateHTML(title, list,
+                    `
+                    <form action="/update_process" method="post">
+                        <!--   form 태그 내부에 있는 값들을 위 주소로 전송한다 -->
+
+                        <!--  hidden 이라는 아이디로 value 값이 전송이 된다. 이
+                              value 값 ( 수정할 파일의 이름) 
+                              을 알아야 update_process에서 처리가 가능하다.
+                        -->
+                        <input type="hidden" name="id" value="${title}">
+                        <p><input type="text" name="title" placeholder="title" value="${title}"></p>
+                        <p>
+                            <textarea name="description" placeholder="description">${description}</textarea>
+                        </p>
+                        <!--    description 값을 query string으로 전송하게 된다. -->
+                        <p>
+                            <input type="submit">
+                        </p>
+                     </form> 
+                    `,
+                    `<a href="/create">create</a> <a href="/update?id=${title}">update</a>`);
+                response.writeHead(200);
+                // 사람들이 실제로 받게되는 화면 data를 reponse.end(data)로 넘겨준다.
+                response.end(template);
             });
         });
     } else {
