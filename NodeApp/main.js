@@ -105,6 +105,7 @@ var app = http.createServer(function(request, response) {
             fs.writeFile(`data/${title}`, description, 'utf8', function(err) {
                 // 파일 저장이 성공적을 됐을 경우 실행
 
+
                 // writeHead ( 302 는 리다이렉트 하라는 의미)
                 response.writeHead(302, { Location: `/?id=${title}` });
                 response.end('success');
