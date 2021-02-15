@@ -2,7 +2,8 @@ var http = require('http');
 var fs = require('fs');
 var url = require('url');
 var qs = require('querystring');
-var template = require('./lib/template.js')
+var template = require('./lib/template.js');
+var path = require('path');
 const { Http2ServerRequest } = require('http2');
 
 
@@ -19,37 +20,45 @@ var app = http.createServer(function(request, response) {
 
     // pathname으로는 home과 다른 페이지를 구별할 수 없다.
     if (pathname == '/') {
-        fs.readdir('./data', function(err, filelist) {
-            fs.readFile(`data/${queryData.id}`, 'utf8', function(err, description) {
+        if (queryData.id === undefined) {
+            fs.readdir('./data', function(error, filelist) {
+                var title = 'Welcome';
+                var description = 'Hello, Node.js';
                 var list = template.list(filelist);
-                var title = queryData.id;
-                var html = template.html(title, list,
+                var html = template.HTML(title, list,
                     `<h2>${title}</h2>${description}`,
-                    `<a href="/create">create</a> 
-                     <a href="/update?id=${title}">update</a>
-                     <form action="delete_process" method="post">
-                        <input type="hidden" name="id" value="${title}">
-                        <input type="submit" value="delete">
-                     </form>
-                     `);
-                // homepage의 경우
-                if (queryData.id == undefined) {
-                    title = 'Welcome';
-                    description = 'Hello, Node.js';
-                    html = template.html(title, list,
-                        `<h2>${title}</h2>${description}`,
-                        `<a href="/create">create</a>`);
-                }
-                // 사람들이 실제로 받게되는 화면 data를 reponse.end(data)로 넘겨준다.
+                    `<a href="/create">create</a>`
+                );
+                response.writeHead(200);
                 response.end(html);
             });
-        });
+        } else {
+            fs.readdir('./data', function(error, filelist) {
+                var filteredId = path.parse(queryData.id).base;
+                fs.readFile(`data/${filteredId}`, 'utf8', function(err, description) {
+                    var title = queryData.id;
+                    var list = template.list(filelist);
+                    var html = template.HTML(title, list,
+                        `<h2>${title}</h2>${description}`,
+                        ` <a href="/create">create</a>
+                    <a href="/update?id=${title}">update</a>
+                    <form action="delete_process" method="post">
+                      <input type="hidden" name="id" value="${title}">
+                      <input type="submit" value="delete">
+                    </form>`
+                    );
+                    response.writeHead(200);
+                    response.end(html);
+                });
+            });
+        }
     } else if (pathname === '/create') {
         fs.readdir('./data', function(err, filelist) {
-            fs.readFile(`data/${queryData.id}`, 'utf8', function(err, description) {
+            var filteredId = path.parse(queryData.id).base;
+            fs.readFile(`data/${filteredId}`, 'utf8', function(err, description) {
                 var title = 'WEB - create';
                 var list = template.list(filelist);
-                var html = template.html(title, list, `
+                var html = template.HTML(title, list, `
 
                     <form action="/create_process" method="post">
                         <!--   form 태그 내부에 있는 값들을 위 주소로 전송한다 -->
@@ -96,10 +105,11 @@ var app = http.createServer(function(request, response) {
         });
     } else if (pathname === '/update') {
         fs.readdir('./data', function(err, filelist) {
-            fs.readFile(`data/${queryData.id}`, 'utf8', function(err, description) {
+            var filteredId = path.parse(queryData.id).base;
+            fs.readFile(`data/${filteredId}`, 'utf8', function(err, description) {
                 var list = template.list(filelist);
-                var title = queryData.id;
-                var html = template.html(title, list,
+                var title = filteredId;
+                var html = template.HTML(title, list,
                     `
                     <form action="/update_process" method="post">
                         <!--   form 태그 내부에 있는 값들을 위 주소로 전송한다 -->
@@ -170,8 +180,8 @@ var app = http.createServer(function(request, response) {
         request.on('end', function(data) {
             var post = qs.parse(body);
             var id = post.id;
-
-            fs.unlink(`data/${id}`, function(err) {
+            var filteredId = path.parse(id).base;
+            fs.unlink(`data/${filteredId}`, function(err) {
                 // writeHead ( 302 는 리다이렉트 하라는 의미)
                 // 삭제가 끝나면 홈으로 보낸다
                 response.writeHead(302, { Location: `/` });
