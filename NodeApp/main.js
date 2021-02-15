@@ -32,6 +32,14 @@ var app = http.createServer(function(request, response) {
                 response.end(html);
             });
         } else {
+            /**
+             *  sanitize 패키지를 이용하면,
+             * 
+             *  script와 같은 태그를 살균해버린다.
+             * 
+             *  각 태그에 적절히 처리를해주기 때문에 그 자세한 설정은 
+             *  또 따로 해줄 수 있다.
+             */
             fs.readdir('./data', function(error, filelist) {
                 var filteredId = path.parse(queryData.id).base;
                 fs.readFile(`data/${filteredId}`, 'utf8', function(err, description) {
