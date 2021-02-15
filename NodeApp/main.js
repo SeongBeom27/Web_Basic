@@ -2,43 +2,9 @@ var http = require('http');
 var fs = require('fs');
 var url = require('url');
 var qs = require('querystring');
-
+var template = require('./lib/template.js')
 const { Http2ServerRequest } = require('http2');
 
-/* 
-    refactoring
-
-    리팩토링이란, 동작 방식은 같되 내부 코드를 효율적으로 바꾸는 것을 의미한다.
-*/
-var template = {
-    html: function(title, list, body, control) {
-        return `
-        <!doctype html>
-        <html>
-        <head>
-        <title>WEB1 - ${title}</title>
-        <meta charset="utf-8">
-        </head>
-        <body>
-        <h1><a href="/">WEB2</a></h1>
-        ${list}
-        ${control}
-        ${body}
-        </body>
-        </html>
-        `;
-    },
-    list: function(filelist) {
-        var list = '<ol>';
-        var i = 0;
-        while (i < filelist.length) {
-            list += `<li><a href="/?id=${filelist[i]}">${filelist[i]}</a></li>`;
-            i = i + 1;
-        }
-        list = list + '</ol>';
-        return list;
-    }
-};
 
 /* 
     createServer 콜백 함수를 웹페이지에 들어올 때마다 nodejs가 호출하는 함수이다.
