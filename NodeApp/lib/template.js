@@ -5,7 +5,7 @@
  *     리팩토링이란, 동작 방식은 같되 내부 코드를 효율적으로 바꾸는 것을 의미한다.
  */
 module.exports = {
-    html: function(title, list, body, control) {
+    HTML: function(title, list, body, control) {
         return `
         <!doctype html>
         <html>
