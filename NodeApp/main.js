@@ -6,7 +6,6 @@ var template = require('./lib/template.js');
 var path = require('path');
 const { Http2ServerRequest } = require('http2');
 
-
 /* 
     createServer 콜백 함수를 웹페이지에 들어올 때마다 nodejs가 호출하는 함수이다.
     
@@ -54,11 +53,10 @@ var app = http.createServer(function(request, response) {
         }
     } else if (pathname === '/create') {
         fs.readdir('./data', function(err, filelist) {
-            var filteredId = path.parse(queryData.id).base;
-            fs.readFile(`data/${filteredId}`, 'utf8', function(err, description) {
-                var title = 'WEB - create';
-                var list = template.list(filelist);
-                var html = template.HTML(title, list, `
+
+            var title = 'WEB - create';
+            var list = template.list(filelist);
+            var html = template.HTML(title, list, `
 
                     <form action="/create_process" method="post">
                         <!--   form 태그 내부에 있는 값들을 위 주소로 전송한다 -->
@@ -73,10 +71,10 @@ var app = http.createServer(function(request, response) {
                     </form>
                      
                 `, ``);
-                response.writeHead(200);
-                // 사람들이 실제로 받게되는 화면 data를 reponse.end(data)로 넘겨준다.
-                response.end(html);
-            });
+            response.writeHead(200);
+            // 사람들이 실제로 받게되는 화면 data를 reponse.end(data)로 넘겨준다.
+            response.end(html);
+
         });
     } else if (pathname == '/create_process') {
         var body = '';
