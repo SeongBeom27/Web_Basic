@@ -5,34 +5,41 @@ var qs = require('querystring');
 
 const { Http2ServerRequest } = require('http2');
 
-function templateHTML(title, list, body, control) {
-    return `
-    <!doctype html>
-    <html>
-    <head>
-    <title>WEB1 - ${title}</title>
-    <meta charset="utf-8">
-    </head>
-    <body>
-    <h1><a href="/">WEB2</a></h1>
-    ${list}
-    ${control}
-    ${body}
-    </body>
-    </html>
-    `;
-}
+/* 
+    refactoring
 
-function templateList(filelist) {
-    var list = '<ol>';
-    var i = 0;
-    while (i < filelist.length) {
-        list += `<li><a href="/?id=${filelist[i]}">${filelist[i]}</a></li>`;
-        i = i + 1;
+    리팩토링이란, 동작 방식은 같되 내부 코드를 효율적으로 바꾸는 것을 의미한다.
+*/
+var template = {
+    html: function(title, list, body, control) {
+        return `
+        <!doctype html>
+        <html>
+        <head>
+        <title>WEB1 - ${title}</title>
+        <meta charset="utf-8">
+        </head>
+        <body>
+        <h1><a href="/">WEB2</a></h1>
+        ${list}
+        ${control}
+        ${body}
+        </body>
+        </html>
+        `;
+    },
+    list: function(filelist) {
+        var list = '<ol>';
+        var i = 0;
+        while (i < filelist.length) {
+            list += `<li><a href="/?id=${filelist[i]}">${filelist[i]}</a></li>`;
+            i = i + 1;
+        }
+        list = list + '</ol>';
+        return list;
     }
-    list = list + '</ol>';
-    return list;
-}
+};
+
 /* 
     createServer 콜백 함수를 웹페이지에 들어올 때마다 nodejs가 호출하는 함수이다.
     
@@ -48,9 +55,9 @@ var app = http.createServer(function(request, response) {
     if (pathname == '/') {
         fs.readdir('./data', function(err, filelist) {
             fs.readFile(`data/${queryData.id}`, 'utf8', function(err, description) {
-                var list = templateList(filelist);
+                var list = template.list(filelist);
                 var title = queryData.id;
-                var template = templateHTML(title, list,
+                var html = template.html(title, list,
                     `<h2>${title}</h2>${description}`,
                     `<a href="/create">create</a> 
                      <a href="/update?id=${title}">update</a>
@@ -63,20 +70,20 @@ var app = http.createServer(function(request, response) {
                 if (queryData.id == undefined) {
                     title = 'Welcome';
                     description = 'Hello, Node.js';
-                    template = templateHTML(title, list,
+                    html = template.html(title, list,
                         `<h2>${title}</h2>${description}`,
                         `<a href="/create">create</a>`);
                 }
                 // 사람들이 실제로 받게되는 화면 data를 reponse.end(data)로 넘겨준다.
-                response.end(template);
+                response.end(html);
             });
         });
     } else if (pathname === '/create') {
         fs.readdir('./data', function(err, filelist) {
             fs.readFile(`data/${queryData.id}`, 'utf8', function(err, description) {
                 var title = 'WEB - create';
-                var list = templateList(filelist);
-                var template = templateHTML(title, list, `
+                var list = template.list(filelist);
+                var html = template.html(title, list, `
 
                     <form action="/create_process" method="post">
                         <!--   form 태그 내부에 있는 값들을 위 주소로 전송한다 -->
@@ -93,7 +100,7 @@ var app = http.createServer(function(request, response) {
                 `, ``);
                 response.writeHead(200);
                 // 사람들이 실제로 받게되는 화면 data를 reponse.end(data)로 넘겨준다.
-                response.end(template);
+                response.end(html);
             });
         });
     } else if (pathname == '/create_process') {
@@ -124,9 +131,9 @@ var app = http.createServer(function(request, response) {
     } else if (pathname === '/update') {
         fs.readdir('./data', function(err, filelist) {
             fs.readFile(`data/${queryData.id}`, 'utf8', function(err, description) {
-                var list = templateList(filelist);
+                var list = template.list(filelist);
                 var title = queryData.id;
-                var template = templateHTML(title, list,
+                var html = template.html(title, list,
                     `
                     <form action="/update_process" method="post">
                         <!--   form 태그 내부에 있는 값들을 위 주소로 전송한다 -->
@@ -149,7 +156,7 @@ var app = http.createServer(function(request, response) {
                     `<a href="/create">create</a> <a href="/update?id=${title}">update</a>`);
                 response.writeHead(200);
                 // 사람들이 실제로 받게되는 화면 data를 reponse.end(data)로 넘겨준다.
-                response.end(template);
+                response.end(html);
             });
         });
     } else if (pathname === "/update_process") {
